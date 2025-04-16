@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI API Connector</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AI API Connector</h1>
+        <div class="section">
+            <h2>Test APIs</h2>
+            <!-- Chat API -->
+            <div class="api-box">
+                <h3>Chat API</h3>
+                <textarea id="chat-input" placeholder="Enter query (e.g., hi)" rows="4"></textarea>
+                <button onclick="testChat()">Send</button>
+                <p><strong>Response:</strong> <span id="chat-response"></span></p>
+            </div>
+            <!-- Add Face API -->
+            <div class="api-box">
+                <h3>Add Face API</h3>
+                <input type="text" id="face-name" placeholder="Enter name">
+                <input type="file" id="face-image" accept=".jpg,.jpeg,.png">
+                <button onclick="testAddFace()">Upload</button>
+                <p><strong>Response:</strong> <span id="face-response"></span></p>
+            </div>
+            <!-- Drag-Drop API -->
+            <div class="api-box">
+                <h3>Drag-Drop API</h3>
+                <input type="file" id="drag-drop-files" multiple accept=".jpg,.jpeg,.png">
+                <button onclick="testDragDrop()">Upload</button>
+                <p><strong>Response:</strong> <span id="drag-drop-response"></span></p>
+            </div>
+            <!-- Update Audio API -->
+            <div class="api-box">
+                <h3>Update Audio API</h3>
+                <input type="file" id="audio-file" accept=".mp3">
+                <button onclick="testUpdateAudio()">Upload</button>
+                <p><strong>Response:</strong> <span id="audio-response"></span></p>
+            </div>
+            <!-- Video Feed -->
+            <div class="api-box">
+                <h3>Video Feed (Colab)</h3>
+                <img id="video-feed" src="{{ ai_processor_url }}/video_feed" alt="Loading feed..." style="max-width: 640px; width: 100%;">
+            </div>
+        </div>
+        <!-- Optional Gemini Chat -->
+        <div class="section">
+            <h2>Gemini API Chat</h2>
+            <textarea id="gemini-chat" placeholder="Enter Gemini query" rows="6"></textarea>
+            <button onclick="testGemini()" disabled>Test Gemini (Add API Key)</button>
+            <p><strong>Response:</strong> <span id="gemini-response"></span></p>
+        </div>
+        <!-- AdSense -->
+        <div class="ads">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="your-ad-client-id"
+                 data-ad-slot="your-ad-slot-id"
+                 data-ad-format="auto"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+    <script>
+        const baseUrl = "https://facegreeter-git-main-lexas-projects-0c10021c.vercel.app";
+        async function testChat() {
+            const query = document.getElementById("chat-input").value;
+            const responseEl = document.getElementById("chat-response");
+            try {
+                const res = await fetch(`${baseUrl}/api/chat`, {
+                    method: "POST",
+                    body: new URLSearchParams({ query }),
+                });
+                const data = await res.json();
+                responseEl.textContent = data.success ? data.response : `Error: ${data.error}`;
+                responseEl.style.color = data.success ? "green" : "red";
+            } catch (e) {
+                responseEl.textContent = `Error: ${e}`;
+                responseEl.style.color = "red";
+            }
+        }
+        async function testAddFace() {
+            const name = document.getElementById("face-name").value;
+            const image = document.getElementById("face-image").files[0];
+            const responseEl = document.getElementById("face-response");
+            if (!name || !image) {
+                responseEl.textContent = "Error: Name and image required";
+                responseEl.style.color = "red";
+                return;
+            }
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("image", image);
+            try {
+                const res = await fetch(`${baseUrl}/api/add_face`, {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await res.json();
+                responseEl.textContent = data.success ? data.message : `Error: ${data.error}`;
+                responseEl.style.color = data.success ? "green" : "red";
+            } catch (e) {
+                responseEl.textContent = `Error: ${e}`;
+                responseEl.style.color = "red";
+            }
+        }
+        async function testDragDrop() {
+            const files = document.getElementById("drag-drop-files").files;
+            const responseEl = document.getElementById("drag-drop-response");
+            if (!files.length) {
+                responseEl.textContent = "Error: Select files";
+                responseEl.style.color = "red";
+                return;
+            }
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append("files", file);
+            }
+            try {
+                const res = await fetch(`${baseUrl}/api/drag-drop`, {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await res.json();
+                responseEl.textContent = data.success ? JSON.stringify(data.results) : `Error: ${data.error}`;
+                responseEl.style.color = data.success ? "green" : "red";
+            } catch (e) {
+                responseEl.textContent = `Error: ${e}`;
+                responseEl.style.color = "red";
+            }
+        }
+        async function testUpdateAudio() {
+            const audio = document.getElementById("audio-file").files[0];
+            const responseEl = document.getElementById("audio-response");
+            if (!audio) {
+                responseEl.textContent = "Error: Select audio";
+                responseEl.style.color = "red";
+                return;
+            }
+            const formData = new FormData();
+            formData.append("audio", audio);
+            try {
+                const res = await fetch(`${baseUrl}/api/update_audio`, {
+                    method: "POST",
+                    body: formData,
+                });
+                const data = await res.json();
+                responseEl.textContent = data.success ? "Audio uploaded" : `Error: ${data.error}`;
+                responseEl.style.color = data.success ? "green" : "red";
+            } catch (e) {
+                responseEl.textContent = `Error: ${e}`;
+                responseEl.style.color = "red";
+            }
+        }
+        async function testGemini() {
+            const query = document.getElementById("gemini-chat").value;
+            const responseEl = document.getElementById("gemini-response");
+            try {
+                const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": "{{ GEMINI_API_KEY }}"
+                    },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] }),
+                });
+                const data = await res.json();
+                responseEl.textContent = data.candidates[0].content.parts[0].text;
+                responseEl.style.color = "green";
+            } catch (e) {
+                responseEl.textContent = `Error: ${e}`;
+                responseEl.style.color = "red";
+            }
+        }
+        // Enable Gemini button if key exists
+        if ("{{ GEMINI_API_KEY }}" !== "") {
+            document.querySelector("button[onclick='testGemini()']").disabled = false;
+        }
+    </script>
+</body>
+</html>
