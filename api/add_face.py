@@ -7,7 +7,7 @@ import sqlite3
 import time
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["https://your-dependencies-app.vercel.app"]}})
+CORS(app, resources={r"/*": {"origins": ["https://your-dependencies-app.vercel.app", "https://facegreeter-git-main-lexas-projects-0c10021c.vercel.app"]}})
 load_dotenv()
 AI_PROCESSOR_URL = os.getenv("AI_PROCESSOR_URL", "http://placeholder")
 
@@ -42,6 +42,10 @@ def add_face():
                             )
                             conn.commit()
                             conn.close()
+                            os.makedirs("images", exist_ok=True)
+                            image.seek(0)
+                            with open(f"images/{name}.jpg", "wb") as f:
+                                f.write(image.read())
                             return {"success": True, "message": f"Face added for {name}"}, 200
                         return {"success": False, "error": result["error"]}, 400
                     return {"success": False, "error": "AI processor failed"}, 500
